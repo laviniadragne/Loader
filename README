@@ -1,0 +1,100 @@
+Nume: Dragne Lavinia-Stefana
+Grupa: 334 CA
+
+				            SISTEME DE OPERARE
+				        Tema #3 - Loader de Executabile
+
+
+	Continutul proiectului este urmatorul:
+	
+	- folder-ul loader
+	
+	- Makefile 
+
+	- acest fisier README.
+
+	* Organizare
+
+    * Linux
+
+    - Se pastreaza structura exec, file descriptorul specific fisierului
+    executabil si o structura de tip sigaction ca si variabile globale statice.
+    - Campul data din structura exec s-a folosit pentru a retine daca o pagina
+    este mapata sau nu. Valoarea 0 indica ca pagina nu a fost mapata, iar 1
+    ca a fost.
+    - Initializez loader-ul. Semnalul SIGSEGV este tratat gratie rutinei
+    segv_handler. In handler verific adresa la care s-a primit 
+    semnalul de seg_fault, daca adresa nu se gaseste in vectorul de segmente
+    se ruleaza handlerul default. Se determina, pe baza indexului segmentului,
+    in ce pagina se afla adresa. 
+    - Verific daca e mapata pagina si in caz afirmativ rulez handler default
+    pentru ca inseamna ca se vrea accesarea unei zone de memorie cu alte 
+    drepturi.
+    - Pagina nu e alocata, determin daca este ultima pagina din segment, in care
+    se afla adresa file_size sau adresa mem_size. Daca file_size si 
+    mem_size se afla pe aceeasi pagina, copiez informatia din fisier pana
+    la file_size si zeroizez pana la mem_size, altfel zeroizez pana la sfarsitul
+    paginii.
+    - Daca adresa ce s-a incercat a fi accesata este intre file_size si mem_size
+    se zeroizeaza intreaga pagina si se mapeaza cu MAP_ANONYMUS.
+    - Daca adresa este pana in file_size si nu in ultima pagina, se mapeaza o
+    pagina din segmentul respectiv, care sa cuprinda adresa pe care am incercat
+    sa o accesam si se marcheaza ca fiind mapata respectiva pagina, folosind
+    variabila data.
+    - In general am mapat pagina cu drepturi de scriere, am copiat datele, iar
+    ulterior am schimbat permisiunile.
+
+    * Windows 
+
+    - In plus, pe Windows, daca incercam sa accesez o zona deja mapata cu alte
+    drepturi, opream programul cu codul de eroare 139, corespunzator pentru
+    SIGSEGV signal.
+    - Pentru a mapa cu anumite permisiuni si a ma folosi de functia 
+    VirtualProtect am implementat functia found_permissions care realizeaza o
+    corespondenta intre permisiunile din segment si flag-urile primite de
+    VirtualProtect.
+    - Pentru mapare am folosit VirtualAlloc si functia map_page, care aloca
+    o pagina goala cu drepturi de scriere, citeste din fisier un numar de
+    bytes dat, ii scrie in pagina si schimba permisiunile, ulterior. Tratarea
+    semnalului de SEGFAULT se realizeaza cu segv_handler.
+    - Pentru a intercepta accesul nevalid la o zona de memorie am folosit
+    vectorul de exceptie access_violation_handler, in care am inregistrat
+    handler-ul segv_handler.
+    - Pentru a obtine adresa la care s-a generat exceptia am folosit 
+    ExceptionInformation[1].
+    - La final, paginile mapate se demapeaza cu VirtualFree.
+
+    * Implementare
+    - A fost implementata intreaga functionalitate.
+
+    * Cum se compileaza
+
+    - Linux: make
+    - Windows: nmake
+
+    * Git
+
+    - Link repo (privat): https://github.com/laviniadragne/Stdio-Library
+
+	* Bibliografie:
+    1. https://github.com/systems-cs-pub-ro/so/blob/master/labs/lab06/sol/lin/5-prot/prot.c
+    2. https://github.com/systems-cs-pub-ro/so/blob/master/labs/lab06/sol/win/4-prot/libvm.c
+    3. https://github.com/systems-cs-pub-ro/so/blob/master/assignments/3-loader/skel-lin/Makefile
+    4. https://github.com/systems-cs-pub-ro/so/blob/master/assignments/3-loader/skel-win/Makefile
+    
+	
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                                                         
